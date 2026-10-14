@@ -30,7 +30,7 @@
       margin: 0 0 8px 0;
       font-size: 16px;
       color: #1a252f;
-      border-bottom: 2px solid #e74c3c;
+      border-bottom: 2px solid #27ae60;
       padding-bottom: 4px;
     }
     .popup-card p {
@@ -50,17 +50,8 @@
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoibmV3aXNsYW5kMTIyMyIsImEiOiJjbXY4MTVsY3cwOGxkMndzaGRkbGhpcjdrIn0.kZygV1BczpM3SFq1kgH-jw';
     const STYLE_URL = 'mapbox://styles/newisland1223/clzig8nrs00l501qqa3yxfgzm'; 
-
     const TILESET_ID = 'mapbox://newisland1223.t10b5wcv01bj';
 
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: STYLE_URL,
-      center: [114.15, 22.28], // Adjust coordinates to your map region
-      zoom: 11
-    });
-
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
     const sourceLayers = [
       'R11 - Tai O',
       'R1 - Pak Kok Hill',
@@ -75,22 +66,32 @@
       'R9 - Lantau Peak',
       'R3 - Po Toi'
     ];
-    
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: STYLE_URL,
+      center: [113.92, 22.26], // Lantau Island region
+      zoom: 11
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
     map.on('load', () => {
+      // Add vector source
       map.addSource('hiking-routes-source', {
         type: 'vector',
         url: TILESET_ID
       });
-    
+
       const lineLayerIds = [];
-    
+
       sourceLayers.forEach((layerName, index) => {
         const casingId = `route-casing-${index}`;
         const lineId = `route-line-${index}`;
-    
+
         lineLayerIds.push(lineId);
-    
-        // Outline casing
+
+        // White outline casing
         map.addLayer({
           id: casingId,
           type: 'line',
@@ -106,8 +107,8 @@
             'line-opacity': 0.9
           }
         });
-    
-        // Main route line
+
+        // Main green route line
         map.addLayer({
           id: lineId,
           type: 'line',
@@ -118,16 +119,14 @@
             'line-cap': 'round'
           },
           paint: {
-            'line-color': '#27ae60', // Green line color
+            'line-color': '#27ae60',
             'line-width': 4
           }
         });
       });
-    });
 
-      // 3. Bind click popups across all 12 route line layers
+      // Bind click popups inside map load handler
       map.on('click', (e) => {
-        // Query features specifically from our 12 route line layers under the click point
         const bbox = [
           [e.point.x - 5, e.point.y - 5],
           [e.point.x + 5, e.point.y + 5]
@@ -138,9 +137,8 @@
 
         const props = features[0].properties;
 
-        // Retrieve properties from your GPX dataset
-        const mountainName = props.name || 'Unknown Mountain / Route';
-        const routeDistance = props.distance || 'N/A';
+        const mountainName = props.name || 'Hiking Route';
+        const routeDistance = props.distance ? `${props.distance} km` : (props.length || 'N/A');
         const routeDifficulty = props.difficulty || 'N/A';
         const routeDesc = props.desc || props.cmt || '';
 
@@ -149,7 +147,7 @@
             <h3>${mountainName}</h3>
             <p><strong>Length:</strong> ${routeDistance}</p>
             <p><strong>Difficulty:</strong> ${routeDifficulty}</p>
-            ${routeDesc ? `<p><strong>Details:</strong> ${routeDesc}</p>` : ''}
+            ${routeDesc && routeDesc !== 'FINISH' ? `<p><strong>Details:</strong> ${routeDesc}</p>` : ''}
           </div>
         `;
 
@@ -159,7 +157,7 @@
           .addTo(map);
       });
 
-      // 4. Update cursor behavior when hovering over any route
+      // Update cursor behavior on hover
       lineLayerIds.forEach((layerId) => {
         map.on('mouseenter', layerId, () => {
           map.getCanvas().style.cursor = 'pointer';
