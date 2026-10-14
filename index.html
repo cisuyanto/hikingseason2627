@@ -95,23 +95,6 @@
 
         lineLayerIds.push(lineId);
 
-        // White casing layer for high contrast
-        map.addLayer({
-          id: casingId,
-          type: 'line',
-          source: 'hiking-routes-source',
-          'source-layer': layerName,
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#ffffff',
-            'line-width': 6,
-            'line-opacity': 0.85
-          }
-        });
-
         // Main line layer
         map.addLayer({
           id: lineId,
