@@ -118,13 +118,15 @@
           type: 'line',
           source: 'hiking-routes-source',
           'source-layer': layerName,
+          filter: ['==', '$type', 'LineString'], // Ensures only line geometries are drawn
           layout: {
             'line-join': 'round',
             'line-cap': 'round'
           },
           paint: {
             'line-color': '#e74c3c',
-            'line-width': 3.5
+            'line-width': 4,
+            'line-opacity': 1
           }
         });
       });
