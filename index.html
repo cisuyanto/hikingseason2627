@@ -53,7 +53,14 @@
 
     const TILESET_ID = 'mapbox://newisland1223.t10b5wcv01bj';
 
-    // Replace these strings with the exact 12 source layer names listed in your Mapbox Tileset details
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: STYLE_URL,
+      center: [114.15, 22.28], // Adjust coordinates to your map region
+      zoom: 11
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
     const sourceLayers = [
       'R11 - Tai O',
       'R1 - Pak Kok Hill',
@@ -68,51 +75,55 @@
       'R9 - Lantau Peak',
       'R3 - Po Toi'
     ];
-
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: STYLE_URL,
-      center: [114.15, 22.28], // Adjust coordinates to your map region
-      zoom: 11
-    });
-
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
+    
     map.on('load', () => {
-      // 1. Add the main vector tileset source
       map.addSource('hiking-routes-source', {
         type: 'vector',
         url: TILESET_ID
       });
-
-      // Collect layer IDs created for interactive event binding
+    
       const lineLayerIds = [];
-
-      // 2. Loop through all 12 source layers to add casing and line layers
+    
       sourceLayers.forEach((layerName, index) => {
         const casingId = `route-casing-${index}`;
         const lineId = `route-line-${index}`;
-
+    
         lineLayerIds.push(lineId);
-
-        // Main line layer
+    
+        // Outline casing
         map.addLayer({
-          id: lineId,
+          id: casingId,
           type: 'line',
           source: 'hiking-routes-source',
           'source-layer': layerName,
-          filter: ['==', '$type', 'LineString'], // Ensures only line geometries are drawn
           layout: {
             'line-join': 'round',
             'line-cap': 'round'
           },
           paint: {
-            'line-color': '#e74c3c',
-            'line-width': 4,
-            'line-opacity': 1
+            'line-color': '#ffffff',
+            'line-width': 7,
+            'line-opacity': 0.9
+          }
+        });
+    
+        // Main route line
+        map.addLayer({
+          id: lineId,
+          type: 'line',
+          source: 'hiking-routes-source',
+          'source-layer': layerName,
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#27ae60', // Green line color
+            'line-width': 4
           }
         });
       });
+    });
 
       // 3. Bind click popups across all 12 route line layers
       map.on('click', (e) => {
