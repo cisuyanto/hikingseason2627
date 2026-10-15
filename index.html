@@ -86,20 +86,17 @@
 
     // Helper function to convert difficulty score n to n/2 stars string
     function renderDifficultyStars(score) {
-      const num = parseFloat(score);
-      if (isNaN(num)) return 'N/A';
+      const starRating = parseFloat(score);
+      if (isNaN(starRating)) return 'N/A';
 
-      const totalStars = 5;
-      const starRating = num / 2; // n/2 stars
+      const totalStars = 10;
       const fullStars = Math.floor(starRating);
-      const hasHalfStar = (starRating - fullStars) >= 0.5;
-      const emptyStars = totalStars - fullStars - (hasHalfStar ? 1 : 0);
+      const emptyStars = totalStars - fullStars;
 
-      let starsHTML = '●⬤'.repeat(fullStars);
-      if (hasHalfStar) starsHTML += '◖';
-      // starsHTML += ''.repeat(Math.max(0, emptyStars));
+      let starsHTML = '●'.repeat(fullStars);
+      starsHTML += '○'.repeat(Math.max(0, emptyStars));
 
-      return `<span class="stars">${starsHTML}</span> (${num/2}/5)`;
+      return `<span class="stars">${starsHTML}</span> ${num}/${totalStars}`;
     }
 
     const map = new mapboxgl.Map({
