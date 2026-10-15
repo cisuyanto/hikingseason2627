@@ -88,11 +88,11 @@
     function getDifficultyColor(score) {
       const d = parseFloat(score);
       if (isNaN(d)) return '#27ae60';
-      if (d <= 1) return '#27ae60'; // Easy (Green)
-      if (d <= 3) return '#2ecc71'; // Mild Green
-      if (d <= 5) return '#f1c40f'; // Moderate (Yellow)
+      if (d <= 4) return '#27ae60'; // Easy (Green)
+      if (d <= 5) return '#2ecc71'; // Mild Green
+      if (d <= 6) return '#f1c40f'; // Moderate (Yellow)
       if (d <= 7) return '#e67e22'; // Hard (Orange)
-      if (d <= 9) return '#e74c3c'; // Very Hard (Red)
+      if (d <= 8) return '#e74c3c'; // Very Hard (Red)
       return '#c0392b';             // Extremely Hard (Dark Red)
     }
 
@@ -139,12 +139,12 @@
         'interpolate',
         ['linear'],
         ['to-number', ['get', 'difficulty'], 1],
-        1,  '#27ae60',
-        3,  '#2ecc71',
-        5,  '#f1c40f',
-        7,  '#e67e22',
-        9,  '#e74c3c',
-        10, '#c0392b'
+        4, '#27ae60',
+        5, '#2ecc71',
+        6, '#f1c40f',
+        7, '#e67e22',
+        8, '#e74c3c',
+        9, '#c0392b'
       ];
 
       sourceLayers.forEach((layerName, index) => {
