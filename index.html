@@ -30,7 +30,7 @@
       margin: 0 0 8px 0;
       font-size: 16px;
       color: #1a252f;
-      border-bottom: 2px solid #27ae60;
+      border-bottom: 2px solid #27ae60; /* Fallback color */
       padding-bottom: 4px;
     }
     .popup-card p {
@@ -84,7 +84,19 @@
       'mr7frwi5keuyfmk054nd'  // Po Toi
     ];
 
-    // Helper function to convert difficulty score n to n/2 stars string
+    // Helper function to map difficulty score to hex color matching Mapbox expression
+    function getDifficultyColor(score) {
+      const d = parseFloat(score);
+      if (isNaN(d)) return '#27ae60';
+      if (d <= 1) return '#27ae60'; // Easy (Green)
+      if (d <= 3) return '#2ecc71'; // Mild Green
+      if (d <= 5) return '#f1c40f'; // Moderate (Yellow)
+      if (d <= 7) return '#e67e22'; // Hard (Orange)
+      if (d <= 9) return '#e74c3c'; // Very Hard (Red)
+      return '#c0392b';             // Extremely Hard (Dark Red)
+    }
+
+    // Helper function to convert difficulty score to 10-circle indicator
     function renderDifficultyStars(score) {
       const starRating = parseFloat(score);
       if (isNaN(starRating)) return 'N/A';
@@ -103,12 +115,11 @@
       container: 'map',
       style: STYLE_URL,
       center: [114.13, 22.36], // Center of Hong Kong
-      zoom: 9.8                 // Fits full Hong Kong territory on most screen sizes
+      zoom: 9.8                 // Fits full Hong Kong territory
     });
 
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    // Create a single popup instance for hover tooltips
     const hoverPopup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
@@ -117,7 +128,6 @@
     });
 
     map.on('load', () => {
-      // Add vector source
       map.addSource('hiking-routes-source', {
         type: 'vector',
         url: TILESET_ID
@@ -125,17 +135,16 @@
 
       const lineLayerIds = [];
 
-      // Color expression interpolating line color based on difficulty score (1 to 10)
       const difficultyColorExpression = [
         'interpolate',
         ['linear'],
         ['to-number', ['get', 'difficulty'], 1],
-        1,  '#27ae60', // Easy (Green)
-        3,  '#2ecc71', // Mild Green
-        5,  '#f1c40f', // Moderate (Yellow)
-        7,  '#e67e22', // Hard (Orange)
-        9,  '#e74c3c', // Very Hard (Red)
-        10, '#c0392b'  // Extremely Hard (Dark Red)
+        1,  '#27ae60',
+        3,  '#2ecc71',
+        5,  '#f1c40f',
+        7,  '#e67e22',
+        9,  '#e74c3c',
+        10, '#c0392b'
       ];
 
       sourceLayers.forEach((layerName, index) => {
@@ -144,7 +153,6 @@
 
         lineLayerIds.push(lineId);
 
-        // White outline casing
         map.addLayer({
           id: casingId,
           type: 'line',
@@ -161,7 +169,6 @@
           }
         });
 
-        // Main route line with dynamic difficulty color
         map.addLayer({
           id: lineId,
           type: 'line',
@@ -178,7 +185,7 @@
         });
       });
 
-      // --- Hover behavior (Tooltip) ---
+      // --- Hover behavior ---
       lineLayerIds.forEach((layerId) => {
         map.on('mousemove', layerId, (e) => {
           map.getCanvas().style.cursor = 'pointer';
@@ -201,7 +208,7 @@
         });
       });
 
-      // --- Click behavior (Detailed Popup) ---
+      // --- Click behavior ---
       map.on('click', (e) => {
         const bbox = [
           [e.point.x - 5, e.point.y - 5],
@@ -217,10 +224,13 @@
         const routeDistance = props.distance ? `${props.distance} km` : (props.length || 'N/A');
         const difficultyDisplay = renderDifficultyStars(props.difficulty);
         const routeDesc = props.desc || props.cmt || '';
+        
+        // Dynamically compute header underline color matching the route difficulty
+        const routeColor = getDifficultyColor(props.difficulty);
 
         const popupHTML = `
           <div class="popup-card">
-            <h3>${mountainName}</h3>
+            <h3 style="border-bottom-color: ${routeColor};">${mountainName}</h3>
             <p><strong>Length:</strong> ${routeDistance}</p>
             <p><strong>Difficulty:</strong> ${difficultyDisplay}</p>
             ${routeDesc && routeDesc !== 'FINISH' ? `<p><strong>Details:</strong> ${routeDesc}</p>` : ''}
