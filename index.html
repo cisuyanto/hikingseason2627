@@ -41,6 +41,23 @@
     .popup-card strong {
       color: #1a202c;
     }
+    .stars {
+      color: #f39c12;
+      font-size: 15px;
+      letter-spacing: 1px;
+    }
+    /* Lightweight hover tooltip styling */
+    .hover-tooltip .mapboxgl-popup-content {
+      padding: 6px 10px;
+      background: rgba(26, 37, 47, 0.9);
+      color: #ffffff;
+      border-radius: 4px;
+      font-size: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .hover-tooltip .mapboxgl-popup-tip {
+      border-top-color: rgba(26, 37, 47, 0.9);
+    }
   </style>
 </head>
 <body>
@@ -67,6 +84,24 @@
       'mr7frwi5keuyfmk054nd'  // Po Toi
     ];
 
+    // Helper function to convert difficulty score n to n/2 stars string
+    function renderDifficultyStars(score) {
+      const num = parseFloat(score);
+      if (isNaN(num)) return 'N/A';
+
+      const totalStars = 5;
+      const starRating = num / 2; // n/2 stars
+      const fullStars = Math.floor(starRating);
+      const hasHalfStar = (starRating - fullStars) >= 0.5;
+      const emptyStars = totalStars - fullStars - (hasHalfStar ? 1 : 0);
+
+      let starsHTML = '★'.repeat(fullStars);
+      if (hasHalfStar) starsHTML += '½';
+      starsHTML += '☆'.repeat(Math.max(0, emptyStars));
+
+      return `<span class="stars">${starsHTML}</span> (${num}/10)`;
+    }
+
     const map = new mapboxgl.Map({
       container: 'map',
       style: STYLE_URL,
@@ -76,6 +111,14 @@
 
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
+    // Create a single popup instance for hover tooltips
+    const hoverPopup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      className: 'hover-tooltip',
+      offset: 12
+    });
+
     map.on('load', () => {
       // Add vector source
       map.addSource('hiking-routes-source', {
@@ -84,6 +127,19 @@
       });
 
       const lineLayerIds = [];
+
+      // Color expression interpolating line color based on difficulty score (1 to 10)
+      const difficultyColorExpression = [
+        'interpolate',
+        ['linear'],
+        ['to-number', ['get', 'difficulty'], 1],
+        1,  '#27ae60', // Easy (Green)
+        3,  '#2ecc71', // Mild Green
+        5,  '#f1c40f', // Moderate (Yellow)
+        7,  '#e67e22', // Hard (Orange)
+        9,  '#e74c3c', // Very Hard (Red)
+        10, '#c0392b'  // Extremely Hard (Dark Red)
+      ];
 
       sourceLayers.forEach((layerName, index) => {
         const casingId = `route-casing-${index}`;
@@ -108,7 +164,7 @@
           }
         });
 
-        // Main green route line
+        // Main route line with dynamic difficulty color
         map.addLayer({
           id: lineId,
           type: 'line',
@@ -119,13 +175,36 @@
             'line-cap': 'round'
           },
           paint: {
-            'line-color': '#27ae60',
-            'line-width': 4
+            'line-color': difficultyColorExpression,
+            'line-width': 4.5
           }
         });
       });
 
-      // Bind click popups inside map load handler
+      // --- Hover behavior (Tooltip) ---
+      lineLayerIds.forEach((layerId) => {
+        map.on('mousemove', layerId, (e) => {
+          map.getCanvas().style.cursor = 'pointer';
+
+          if (e.features.length > 0) {
+            const props = e.features[0].properties;
+            const mountainName = props.name || 'Hiking Route';
+            const difficultyDisplay = renderDifficultyStars(props.difficulty);
+
+            hoverPopup
+              .setLngLat(e.lngLat)
+              .setHTML(`<strong>${mountainName}</strong><br/>Difficulty: ${difficultyDisplay}`)
+              .addTo(map);
+          }
+        });
+
+        map.on('mouseleave', layerId, () => {
+          map.getCanvas().style.cursor = '';
+          hoverPopup.remove();
+        });
+      });
+
+      // --- Click behavior (Detailed Popup) ---
       map.on('click', (e) => {
         const bbox = [
           [e.point.x - 5, e.point.y - 5],
@@ -139,14 +218,14 @@
 
         const mountainName = props.name || 'Hiking Route';
         const routeDistance = props.distance ? `${props.distance} km` : (props.length || 'N/A');
-        const routeDifficulty = props.difficulty || 'N/A';
+        const difficultyDisplay = renderDifficultyStars(props.difficulty);
         const routeDesc = props.desc || props.cmt || '';
 
         const popupHTML = `
           <div class="popup-card">
             <h3>${mountainName}</h3>
             <p><strong>Length:</strong> ${routeDistance}</p>
-            <p><strong>Difficulty:</strong> ${routeDifficulty}</p>
+            <p><strong>Difficulty:</strong> ${difficultyDisplay}</p>
             ${routeDesc && routeDesc !== 'FINISH' ? `<p><strong>Details:</strong> ${routeDesc}</p>` : ''}
           </div>
         `;
@@ -155,17 +234,6 @@
           .setLngLat(e.lngLat)
           .setHTML(popupHTML)
           .addTo(map);
-      });
-
-      // Update cursor behavior on hover
-      lineLayerIds.forEach((layerId) => {
-        map.on('mouseenter', layerId, () => {
-          map.getCanvas().style.cursor = 'pointer';
-        });
-
-        map.on('mouseleave', layerId, () => {
-          map.getCanvas().style.cursor = '';
-        });
       });
     });
   </script>
