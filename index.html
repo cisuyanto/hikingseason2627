@@ -96,8 +96,8 @@
       const emptyStars = totalStars - fullStars - (hasHalfStar ? 1 : 0);
 
       let starsHTML = '●'.repeat(fullStars);
-      if (hasHalfStar) starsHTML += '◐';
-      starsHTML += '○'.repeat(Math.max(0, emptyStars));
+      if (hasHalfStar) starsHTML += '◖';
+      // starsHTML += '○'.repeat(Math.max(0, emptyStars));
 
       return `<span class="stars">${starsHTML}</span> (${num/2}/5)`;
     }
@@ -105,8 +105,8 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: STYLE_URL,
-      center: [113.92, 22.26], // Lantau Island region
-      zoom: 11
+      center: [114.13, 22.36], // Center of Hong Kong
+      zoom: 9.8                 // Fits full Hong Kong territory on most screen sizes
     });
 
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
