@@ -96,7 +96,7 @@
       let starsHTML = '●'.repeat(fullStars);
       starsHTML += '○'.repeat(Math.max(0, emptyStars));
 
-      return `<span class="stars">${starsHTML}</span> ${num}/${totalStars}`;
+      return `<span class="stars">${starsHTML}</span> ${starRating}/${totalStars}`;
     }
 
     const map = new mapboxgl.Map({
