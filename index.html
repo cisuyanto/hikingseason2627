@@ -99,7 +99,7 @@
       if (hasHalfStar) starsHTML += '◐';
       starsHTML += '○'.repeat(Math.max(0, emptyStars));
 
-      return `<span class="stars">${starsHTML}</span> (${num}/10)`;
+      return `<span class="stars">${starsHTML}</span> (${num/2}/5)`;
     }
 
     const map = new mapboxgl.Map({
