@@ -96,7 +96,7 @@
       const emptyStars = totalStars - fullStars - (hasHalfStar ? 1 : 0);
 
       let starsHTML = '■'.repeat(fullStars);
-      if (hasHalfStar) starsHTML += '◩';
+      if (hasHalfStar) starsHTML += '◧';
       starsHTML += '□'.repeat(Math.max(0, emptyStars));
 
       return `<span class="stars">${starsHTML}</span> (${num/2}/5)`;
