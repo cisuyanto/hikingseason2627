@@ -119,12 +119,6 @@
       zoom: 9.8                 // Fits full Hong Kong territory
     });
 
-    map.addSource('hiking-routes-source', {
-      type: 'vector',
-      url: TILESET_ID,
-      promoteId: 'name' // Ensures features retain unique IDs across vector tile boundaries
-    });
-
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
     const hoverPopup = new mapboxgl.Popup({
